@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+// В этом пакете находятся стандартные типы, такие как StringValue.
+import "google/protobuf/wrappers.proto";
+
+package ecommerce;
+
+option go_package = "order_management/server/ecommerce";
+
+service OrderManagement {
+  // Удаленные метод для извлечения заказа.
+  rpc getOrder(google.protobuf.StringValue) returns (Order);
+
+  // Включаем потоковую передачу, возвращая поток сообщений типа Order.
+  rpc searchOrders(google.protobuf.StringValue) returns (stream Order);
+
+  rpc updateOrders(stream Order) returns (google.protobuf.StringValue);
+
+  // В двунаправленном RPC входящие и исходящие параметры объявляются в качестве потоков.
+  rpc processOrders(stream google.protobuf.StringValue) returns (stream CombinedShipment);
+}
+
+// Определяем тип Order.
+message Order {
+  string id = 1;
+  // Модификатор repeated используется для предоставления полей, которые могут
+  // повторяться в сообщении сколько угодно (или вообще отсутствовать).
+  // В нашем случае сообщение Order может содержать любое количество
+  // заказанных единиц товара.
+  repeated string items = 2;
+  string description = 3;
+  float price = 4;
+  string destination = 5;
+}
+
+// Структура сообщения CombinedShipment.
+message CombinedShipment {
+  string id = 1;
+  string status = 2;
+  repeated Order ordersList = 3;
+}

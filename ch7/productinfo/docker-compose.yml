@@ -1,0 +1,26 @@
+version: "3.5"
+
+networks:
+  mynet:
+
+services:
+  grpc-productinfo-server:
+    hostname: productinfo
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "50051:50051"
+    networks:
+      mynet: {}
+
+  grpc-productinfo-client:
+    hostname: client
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    environment:
+      HOST: productinfo
+      PORT: 80
+    networks:
+      mynet: {}

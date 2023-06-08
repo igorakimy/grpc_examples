@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+// Импортируем proto-файл google/api/annotations.proto, чтобы
+// добавить в Protocol Buffers поддержку аннотаций
+import "google/api/annotations.proto";
+
+package ecommerce;
+
+option go_package = "productinfo/pb";
+
+service ProductInfo {
+  rpc addProduct(Product) returns (google.protobuf.StringValue) {
+    // Добавляем в метод addProduct привязку gRPC/HTTP. Указываем
+    // шаблон URL-пути (v1/product), HTTP-метод (POST) и описание
+    // тела сообщения. Символ * говорит о том, что любое поле, не
+    // соответствующее шаблону пути, должно быть привязано к телу
+    // запроса
+    option (google.api.http) = {
+      post: "/v1/product"
+      body: "*"
+    };
+  }
+
+  rpc getProduct(google.protobuf.StringValue) returns (Product) {
+    // Добавляем привязку gRPC/HTTP в метод getProduct. Здесь мы
+    // указываем HTTP-метод GET с шаблоном URL-пути /v1/product/{value}
+    // и google.protobuf.StringValue в качестве передаваемого параметра
+    option (google.api.http) = {
+      get: "/v1/product/{value}"
+    };
+  }
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  float price = 4;
+}
+
+// --- Правила привязки gRPC-сервисов к HTTP-ресурсам ---- //
+
+// 1. Каждая привязка должна определять шаблон URL-пути и HTTP-метод.
+
+// 2. Шаблон пути в gRPC-запросе может занимать одно или несколько
+//    полей с неповторяемым примитивным типом.
+
+// 3. Любое поле запроса, которое не указано в шаблоне пути, автоматически
+//    становится параметром HTTP-запроса (при условии, что у HTTP-запроса
+//    нет тела).
+
+// 4. Поля, привязанные к URL-параметрам, могут быть сообщениями или иметь
+//    примитивный тип. При этом в первом случае они должны быть неповторяемыми.
+
+// 5. Повторяемые поля в URL становятся параметрами запроса такого вида:
+//    ...?param=A&param=B.
+
+// 6. Каждое поле сообщения привязывается к отдельному параметру - например,
+//    ...?foo.a=A&foo.b=B&foo.c=C.

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+# Указываем Job в качестве типа ресурса
+kind: Job
+metadata:
+  # Имя задания
+  name: grpc-productinfo-client
+spec:
+  # ttlSecondsAfterFinished: 10
+  # Количество раз, которое pod-оболочка должна отработать успешно,
+  # прежде чем задание можно считать завершенным
+  completions: 1
+  # Сколько pod-оболочек должно работать одновременно
+  parallelism: 1
+  template:
+    spec:
+      containers:
+      # Название соответствующего контейнера с gRPС-клиентом
+      - name: grpc-productinfo-client
+        # Образ контейнера, с которым связано это задание
+        image: igorakimov/grpc-productinfo-client:1.0.0
+      restartPolicy: Never
+  backoffLimit: 4

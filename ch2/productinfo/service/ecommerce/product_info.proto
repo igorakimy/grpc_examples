@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+// Импортировав другой файл можно использовать другие сообщения,
+// содержащиеся в нем
+import "google/protobuf/wrappers.proto";
+
+package ecommerce;
+
+option go_package = "productinfo/service/ecommerce";
+
+service ProductInfo {
+  rpc addProduct(Product) returns (ProductID);
+  rpc getProduct(ProductID) returns (Product);
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  float price = 4;
+}
+
+message ProductID {
+  string value = 1;
+}

@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+# Объявляем объект Deployment
+kind: Deployment
+metadata:
+  # Название развертывания
+  name: grpc-productinfo-server
+spec:
+  # Количество pod-оболочек с gRPC-сервером, которые
+  # должны выполняться одновременно
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-productinfo-server
+  template:
+    metadata:
+      labels:
+        app: grpc-productinfo-server
+    spec:
+      containers:
+      # Название соответствующего контейнера с gRPC-сервером
+      - name: grpc-productinfo-server
+        # Имя и тег образа контейнера с gRPC-сервером
+        image: igorakimov/grpc-productinfo-server:1.0.0
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+          - containerPort: 50051
+            name: grpc
+
+---
+
+apiVersion: v1
+# Указываем Service в качестве типа ресурса
+kind: Service
+metadata:
+  # Имя, с помощью которого клиентское приложение будет
+  # подключаться к сервису
+  name: productinfo
+spec:
+  selector:
+    # Это говорит сервису о том, что запросы должны направляться
+    # к pod-оболочкам с меткой grpc-productinfo-server
+    app: grpc-productinfo-server
+  ports:
+    # Сервис работает на порте 50051 и перенаправляет запросы
+    # на порт 50051
+    - port: 50051
+      targetPort: 50051
+      name: grpc
+  type: NodePort
+
+---
+
+apiVersion: networking.k8s.io/v1
+# Указываем Ingress как тип ресурса
+kind: Ingress
+metadata:
+  # Аннотация, относящаяся к контроллеру Nginx Ingress;
+  # указывает gRPC в качестве внутреннего протокола
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+  # Название ресурса Ingress
+  name: grpc-prodinfo-ingress
+spec:
+  rules:
+  # Сетевое имя, доступное снаружи
+  - host: productinfo
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            # Имя соответствующего Kubernetes-сервиса
+            name: productinfo
+            # Название порта, указанного для Kubernetes-сервиса
+            port:
+              number: 80

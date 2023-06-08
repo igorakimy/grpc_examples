@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package grpc.health.v1;
+
+// Структура запроса для проверки работоспособности
+message HealthCheckRequest {
+  string service = 1;
+}
+
+// Ответ на проверку работоспособности с состоянием обслуживания
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+}
+
+service Health {
+  // Клиент может запросить состояние работоспособности сервера,
+  // вызвав метод Check
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+
+  // Для проверки работоспособности в потоковом режиме клиент
+  // может воспользоваться методом Watch
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse);
+}
+
